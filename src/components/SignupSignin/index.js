@@ -3,8 +3,8 @@ import "./style.css"
 import Input from "../Input";
 import Button from '../Button';
 import { doc, getDoc, setDoc } from "firebase/firestore"; 
-import { createUserWithEmailAndPassword,signInWithEmailAndPassword } from "firebase/auth";
-import {auth,db} from "../../firebase"
+import { GoogleAuthProvider, createUserWithEmailAndPassword,signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {auth,db, provider} from "../../firebase"
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 function SignupSigninComponent() {
@@ -106,11 +106,42 @@ function SignupSigninComponent() {
 
     }
   }else{
-    toast.error("Doc Already exsist")
+    // toast.error("Doc Already exsist")
     setLoading(false);
 
   }
 
+  }
+
+  function googleAuth(){
+    setLoading(true);
+    try{
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          // This gives you a Google Access Token. You can use it to access the Google API.
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          const token = credential.accessToken;
+          // The signed-in user info.
+          const user = result.user;
+          console.log("user>>>",user);
+          createDoc(user);
+          setLoading(false)
+          navigate("/dashboard")
+          toast.success("User Autenticated")
+          // IdP data available using getAdditionalUserInfo(result)
+          // ...
+        }).catch((error) => {
+          setLoading(false)
+          // Handle Errors here.
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          toast.error(errorMessage);
+        });
+    }catch(e){
+      setLoading(false)
+      toast.error(e.message);
+    }
+    
   }
 
 
@@ -125,7 +156,7 @@ function SignupSigninComponent() {
       <Input type="password" label={"Password"} state={password} setState={setPassword} placeholder={"Example 123"} />
       <Button disabled={loading} text={loading?"Loading...":"Login Using Email and Password"} onClick={loginUsingEmail}/>
       <p className='p-login'>or</p>
-      <Button text={loading?"Loading...":"Login Using Google"} blue={true}/>
+      <Button onClick={googleAuth} text={loading?"Loading...":"Login Using Google"} blue={true}/>
       <p className='p-login' style={{cursor:"pointer"}} onClick={()=> setLoginForm(!loginForm)}>Or Don't Have An Account ? Click here </p>
 
     </form>
@@ -140,7 +171,7 @@ function SignupSigninComponent() {
         <Input type="password" label={"Confirm Password"} state={confirmPassword} setState={setConfirmPassword} placeholder={"Example 123"} />
         <Button disabled={loading} text={loading?"Loading...":"Signup Using Email and Password"} onClick={signupWithEmail}/>
         <p className='p-login'>or</p>
-        <Button text={loading?"Loading...":"Signup Using Google"} blue={true}/>
+        <Button onClick={googleAuth} text={loading?"Loading...":"Signup Using Google"} blue={true}/>
         <p className='p-login' style={{cursor:"pointer"}} onClick={()=> setLoginForm(!loginForm)}>Or Have An Account Already ? Click here </p>
 
       </form>
