@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import {getAuth,GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, doc , setDoc } from "firebase/firebase";
+import { getFirestore, doc , setDoc } from "firebase/firestore";
 
 
 
@@ -25,3 +25,4 @@ const db=getFirestore(app);
 const auth =getAuth(app);
 const provider =new GoogleAuthProvider();
 export { db,auth, provider,doc,setDoc };
+

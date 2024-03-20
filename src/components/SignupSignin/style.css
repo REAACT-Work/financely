@@ -14,3 +14,9 @@
     margin: 0;
     margin-bottom: 1rem;
 }
+.p-login{
+    text-align: center;
+    margin: 0;
+    font-weight: 300;
+    font-size: 0.8rem;
+}
