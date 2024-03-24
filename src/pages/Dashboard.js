@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import moment from 'moment';
 import { auth, db } from '../firebase';
 import { addDoc,collection, getDocs, query } from 'firebase/firestore';
+import TransactionTable from '../components/Transactiontable';
 const Dashboard = () => {
   // const transaction=[
   //   {
@@ -31,6 +32,9 @@ const Dashboard = () => {
   const [user]=useAuthState(auth);
   const [isExpenseModalVisible,setisExpenseModalVisible]=useState(false);
   const [isIncomeModalVisible,setIsIncomeModalVisible]=useState(false);
+  const [income,setIncome]=useState(0);
+  const [expense,setExpense]=useState(0);
+  const [totalBalance,setTotalBalance]=useState(0);
   const showExpenseModal=()=>{
     setisExpenseModalVisible(true);
   }
@@ -63,7 +67,11 @@ const Dashboard = () => {
         transaction
       );
       console.log("Document written with Id:",docRef.id);
-        toast.success("Transaction Added")
+        toast.success("Transaction Added");
+        let newArr=transactions;
+        newArr.push(transaction);
+        setTransactions(newArr);
+        calculateBalance();
     }
     catch(e){
       console.e("Error adding document: ", e);
@@ -74,6 +82,28 @@ const Dashboard = () => {
   useEffect(()=>{
     fetchTransactions();
   },[]);
+
+  useEffect(()=>{
+    calculateBalance();
+  },[transactions]);
+
+  function calculateBalance(){
+    let incomeTotal=0;
+    let expensesTotal=0;
+
+    transactions.forEach((transaction)=>{
+      if(transaction.type==="income"){
+        incomeTotal+=transaction.amount;
+      }
+      else{
+        expensesTotal+=transaction.amount;
+      }
+    });
+
+    setIncome(incomeTotal);
+    setExpense(expensesTotal);
+    setTotalBalance(incomeTotal-expensesTotal);
+  };
 
   async function fetchTransactions(){
     setLoading(true);
@@ -99,6 +129,9 @@ const Dashboard = () => {
       ) : (
       <>
       <Cards 
+      income={income}
+      expense={expense}
+      totalBalance={totalBalance}
       showExpenseModal={showExpenseModal}
       showIncomeModal={showIncomeModal}
       />
@@ -111,7 +144,9 @@ const Dashboard = () => {
       isIncomeModalVisible={isIncomeModalVisible}
       handleIncomeCancel={handleIncomeCancel}
       onFinish={onFinish}
-      /> </>
+      />
+      <TransactionTable transactions={transactions}/>
+      </>
       )}
     </div>
   );
