@@ -1,7 +1,11 @@
 import { Radio, Select, Table } from 'antd';
 import React, { useState } from 'react'
+import searchImg from "../../assets/search.svg";
+import { parse, unparse } from 'papaparse';
+import { Header } from 'antd/es/layout/layout';
+import { toast } from 'react-toastify';
 
-function TransactionTable({transactions}) {
+function TransactionTable({transactions,addTransaction,fetchTransactions}) {
 
     const { Option }=Select;
     const [search,setSearch]=useState("")
@@ -49,14 +53,72 @@ function TransactionTable({transactions}) {
     else{
       return 0;
     }
-  })
+  });
+
+  function exportCSV(){
+    var csv=unparse({
+      fields:["name","type","tag","date","amount"],
+      data:transactions,
+    })
+    const blob=new Blob([csv],{ type:"text/csv;charset=utf-8;"});
+    const url=window.URL.createObjectURL(blob);
+    const link=document.createElement("a")
+    link.href=url;
+    link.download="transaction.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function importfromCsv(event){
+    event.preventDefault();
+    try{
+      parse(event.target.files[0],{
+        header:true,
+        complete:async function (results){
+
+          for(const transaction of results.data){
+            console.log("Transactions", transaction);
+            const newTransaction = {
+              ...transaction,
+              amount:parseFloat(transaction.amount),
+            };
+            await addTransaction(newTransaction,true);
+        }
+      }
+      });
+      toast.success("All Transaction Added");
+      fetchTransactions();
+      event.target.files=null;
+    }catch(e) {
+      toast.error(e.message);
+    }
+  }
   return(
-  <>
-  <input 
-  value={search} 
-  onChange={(e)=>setSearch(e.target.value)}
-  placeholder="Search By Name"
+    <div
+    style={{
+      width:"97%",
+      padding:"0rem 2rem",
+    }}
+    >
+    <div
+    style={{
+      display:"flex",
+      justifyContent:"space-between",
+      gap:"1rem",
+      alignItems:"center",
+      marginBottom:"1rem",
+    }}
+    >
+  <div className="input-flex">
+    <img src={searchImg} width="16"/>
+    <input 
+    value={search} 
+    onChange={(e)=>setSearch(e.target.value)}
+    placeholder="Search By Name"
   />
+  </div>
+
   <Select
   className='select-input'
   onChange={(value)=>setTypeFilter(value)}
@@ -68,6 +130,18 @@ function TransactionTable({transactions}) {
     <Option value="income">Income</Option>
     <Option value="expense">Expense</Option>
  </Select>
+ </div>
+ <div className='my-table'>
+  <div
+  style={{
+    display:"flex",
+    justifyContent:"space-between",
+    alignItems:"center",
+    width:"100%",
+    marginBottom:"1rem",
+  }}
+  >
+<h2>My Transaction</h2>
 <Radio.Group
 className='input-radio'
 onChange={(e)=>setSortKey(e.target.value)}
@@ -77,8 +151,34 @@ value={sortKey}
  <Radio.Button value="date">Sort by Date</Radio.Button>
  <Radio.Button value="amount">Sort by Amount</Radio.Button>
  </Radio.Group>
+
+ <div
+ style={{
+  display:"flex",
+  justifyContent:"center",
+  gap:"1rem",
+  width:"400px",
+ }}
+ >
+  <button onClick={exportCSV} className='btn'>
+  Export to CSV 
+  </button>
+  <label for="file-csv" className='btn btn-blue'>
+    Import from CSV
+  </label>
+  <input
+  onChange={importfromCsv}
+  id='file-csv'
+  type='file'
+  accept='.csv'
+  required
+  style={{display:"none"}}
+  />
+  </div>
+  </div>
   <Table dataSource={sortedTransactions} columns={columns} />
-  </>
+  </div></div>
+  
   );
 }
 

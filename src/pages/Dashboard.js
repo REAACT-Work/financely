@@ -9,6 +9,8 @@ import moment from 'moment';
 import { auth, db } from '../firebase';
 import { addDoc,collection, getDocs, query } from 'firebase/firestore';
 import TransactionTable from '../components/Transactiontable';
+import ChartComponents from '../components/Charts';
+import NoTransaction from '../components/NoTransaction';
 const Dashboard = () => {
   // const transaction=[
   //   {
@@ -51,7 +53,7 @@ const Dashboard = () => {
   const onFinish=(values,type)=>{
     const newTransaction={
       type:type,
-      date:moment(values.date).format("YYYY-MM-DD"),
+      date:values.date.format("YYYY-MM-DD"),
       amount: parseFloat(values.amount),
       tag:values.tag,
       name:values.name,
@@ -59,7 +61,7 @@ const Dashboard = () => {
     addTransaction(newTransaction);
   };
 
-  async function addTransaction(transaction){
+  async function addTransaction(transaction,many){
     // Add the doc
     try{
       const docRef=await addDoc(
@@ -67,7 +69,7 @@ const Dashboard = () => {
         transaction
       );
       console.log("Document written with Id:",docRef.id);
-        toast.success("Transaction Added");
+        if (!many) toast.success("Transaction Added");
         let newArr=transactions;
         newArr.push(transaction);
         setTransactions(newArr);
@@ -75,13 +77,13 @@ const Dashboard = () => {
     }
     catch(e){
       console.e("Error adding document: ", e);
-        toast.error("Error Adding Transaction")
+        if (!many) toast.error("Error Adding Transaction")
     }
   }
 
   useEffect(()=>{
     fetchTransactions();
-  },[]);
+  },[user]);
 
   useEffect(()=>{
     calculateBalance();
@@ -121,6 +123,11 @@ const Dashboard = () => {
     setLoading(false);
   }
 
+  let sortedTransactions= transactions.sort((a,b)=>{
+    
+      return new Date(a.date) - new Date(b.date);
+  })
+
   return (
     <div>
       <Header/>
@@ -135,6 +142,11 @@ const Dashboard = () => {
       showExpenseModal={showExpenseModal}
       showIncomeModal={showIncomeModal}
       />
+      {transactions.length!=0?(
+      <ChartComponents sortedTransactions={sortedTransactions}/>
+      ):(
+      <NoTransaction/>
+      )}
       <AddExpenseModal
       isExpenseModalVisible={isExpenseModalVisible}
       handleExpenseCancel={handleExpenseCancel}
@@ -145,7 +157,10 @@ const Dashboard = () => {
       handleIncomeCancel={handleIncomeCancel}
       onFinish={onFinish}
       />
-      <TransactionTable transactions={transactions}/>
+      <TransactionTable transactions={transactions}
+      addTransaction={addTransaction}
+      fetchTransactions={fetchTransactions}
+      />
       </>
       )}
     </div>
