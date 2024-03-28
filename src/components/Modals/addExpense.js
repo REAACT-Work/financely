@@ -72,7 +72,7 @@ function AddExpenseModal({
                     ]}>
                 <Select className='select-input-2'>
                     <Select.Option value="food">Food</Select.Option>
-                    <Select.Option value="Education">Education</Select.Option>
+                    <Select.Option value="education">Education</Select.Option>
                     <Select.Option value="office">Office</Select.Option>
                 </Select>
                 </Form.Item>

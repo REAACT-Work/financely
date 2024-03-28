@@ -45,6 +45,11 @@ spendingData.forEach((item)=>{
         autoFit:true,
         xField: 'date',
         yField: 'amount',
+        point:{
+            visible:true,
+            shape: 'diamond',
+            size: 5,
+        },
     };
     const spendingConfig={
         data:newSpendings,

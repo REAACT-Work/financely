@@ -15,7 +15,7 @@ function Cards({
         <Card bordered={true} className='my-card'>
           <h2>Current Balance</h2>
           <p>₹{totalBalance}</p>
-          <Button text="Reset Button" blue={true}/>
+          <Button text="Reset Button"  blue={true}/>
         </Card>
 
         <Card bordered={true} className='my-card'>
